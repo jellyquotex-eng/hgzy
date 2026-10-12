@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HGZY Wingo Signal (Premium)</title>
+<style>
+  :root{
+    --bg:#0b0b0f; --card:#0f1115; --muted:#9aa3b2;
+    --gold:#d4af37; --accent:#00c2a8; --danger:#ff4d4f; --success:#33d17a;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#060607 0%, #0b1016 100%);color:#e6eef6}
+  .wrap{max-width:920px;margin:30px auto;padding:28px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{margin:0;font-size:20px;color:var(--gold);letter-spacing:0.6px}
+  .sub{color:var(--muted);font-size:13px}
+  .grid{display:grid;grid-template-columns:1fr 340px;gap:18px;margin-top:18px}
+  .card{background:var(--card);padding:18px;border-radius:12px}
+  .timer{font-size:34px;font-weight:700;letter-spacing:2px;text-align:center;padding:10px 0}
+  .period{font-weight:600;text-align:center;margin-top:8px;color:#cfe8ff}
+  .signal-num{font-size:56px;font-weight:800;text-align:center;margin:6px 0}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700}
+  .big{background:linear-gradient(90deg, rgba(0,194,168,0.12), rgba(0,194,168,0.06));color:var(--success)}
+  .small{background:linear-gradient(90deg, rgba(255,77,79,0.06), rgba(255,77,79,0.02));color:var(--danger)}
+  .color-label{font-weight:800;padding:8px 14px;border-radius:999px}
+  .green{background:rgba(51,209,122,0.08);color:var(--success)}
+  .red{background:rgba(255,77,79,0.08);color:var(--danger)}
+  .meta{display:flex;gap:8px;justify-content:center;margin-top:10px;color:var(--muted);font-size:13px}
+  .controls{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  button{background:transparent;border:1px solid rgba(255,255,255,0.05);color:#eaf6ff;padding:8px 12px;border-radius:10px;cursor:pointer}
+  .primary{background:linear-gradient(90deg,var(--gold),#ffd87a);color:#0b0b0b;border:none;font-weight:700}
+  .small-txt{font-size:12px;color:var(--muted)}
+  footer{margin-top:16px;text-align:center;color:var(--muted);font-size:13px}
+  a.reg{color:var(--accent);font-weight:700;text-decoration:none}
+  @media(max-width:880px){.grid{grid-template-columns:1fr;}.wrap{margin:14px}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>WINGO 1-Minute Signal — Premium</h1>
+        <div class="sub">Number + Big/Small + Red/Green • Bangladesh time</div>
+      </div>
+      <div style="text-align:right">
+        <div class="sub">Creator</div>
+        <div style="font-weight:800;color:#cfe8ff">@MIRAJ_TRADER_15</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small-txt">Period (1-minute)</div>
+            <div class="period" id="period">—</div>
+          </div>
+          <div>
+            <div class="small-txt">Time left</div>
+            <div class="timer" id="timer">-- : --</div>
+          </div>
+        </div>
+
+        <hr style="margin:14px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+        <div style="text-align:center">
+          <div class="small-txt">Predicted Number</div>
+          <div class="signal-num" id="number">--</div>
+
+          <div class="controls">
+            <div id="bsBadge" class="badge big">—</div>
+            <div id="colorBadge" class="badge" style="background:transparent">—</div>
+          </div>
+
+          <div class="meta" id="metaText">Algorithm: deterministic timestamp hash</div>
+
+          <div class="controls" style="margin-top:18px">
+            <button id="refreshBtn">Refresh Now</button>
+            <button id="copyBtn">Copy Signal</button>
+            <button id="openApiBtn" class="primary">Open Functions (if any)</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;color:var(--gold)">Registration</div>
+        <p class="small-txt" style="margin-top:8px">
+          ডেমো/রেজিস্ট্রেশন লিংক:
+          <br>
+          <a class="reg" target="_blank" id="regLink" href="https://70fbfaf9.ar007-bengal-hgzy.pages.dev/#/register?invitationCode=25813678263">
+            https://70fbfaf9.ar007-bengal-hgzy.pages.dev/…?invitationCode=25813678263
+          </a>
+        </p>
+
+        <hr style="margin:14px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)">
+
+        <div style="font-weight:700">Settings</div>
+        <p class="small-txt">এই সাইটটি Netlify/Vercel-ready। নিচে অপশন:</p>
+        <ul class="small-txt">
+          <li>Auto-generate prediction (local JS).</li>
+          <li>Optional: use server API (Netlify function) — সেট করতে হবে `API_URL` পরিবর্তন করে।</li>
+        </ul>
+
+        <div style="margin-top:12px">
+          <div class="small-txt">Creator</div>
+          <div style="font-weight:800;margin-top:6px">@MIRAJ_TRADER_15 ❤️</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>© HGZY Wingo • Premium UI</div>
+    </footer>
+  </div>
+
+<script>
+/*
+  Instructions:
+  - Deploy this file as site root (index.html).
+  - Optional: set API_URL to your netlify function (example):
+      const API_URL = "https://neon-lamington-b8eb69.netlify.app/.netlify/functions/hgzy"
+    If you set API_URL, the script will try to fetch live JSON from it.
+*/
+
+const API_URL = ""; // <-- যদি তোমার Netlify/Vercel function থাকে সেট করো, না হলে ফাঁকা রাখো.
+
+const periodEl = document.getElementById('period');
+const timerEl  = document.getElementById('timer');
+const numberEl = document.getElementById('number');
+const bsBadge   = document.getElementById('bsBadge');
+const colorBadge = document.getElementById('colorBadge');
+const metaText = document.getElementById('metaText');
+const refreshBtn = document.getElementById('refreshBtn');
+const copyBtn = document.getElementById('copyBtn');
+const openApiBtn = document.getElementById('openApiBtn');
+
+function dhakaNow(){
+  // return Date object in Asia/Dhaka (without changing system time)
+  // We'll use Intl to get components
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Dhaka',
+    year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false
+  }).formatToParts(now).reduce((acc,p)=>{acc[p.type]=p.value;return acc;},{});
+  // build a JS Date from the parts (as local time representation)
+  return new Date(`${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}+06:00`);
+}
+
+function pad(n){return String(n).padStart(2,'0')}
+
+// build period string similar to your Java logic:
+// yyyyMMdd + "1000" + (10001 + totalMinutes)
+function buildPeriod(d){
+  const yyyy = d.getFullYear();
+  const MM = pad(d.getMonth()+1);
+  const dd = pad(d.getDate());
+  const minutes = d.getHours()*60 + d.getMinutes();
+  const code = 10001 + minutes;
+  return `${yyyy}${MM}${dd}1000${code}`;
+}
+
+// deterministic hash simple (djb2) -> use to produce 0-99
+function hashToNumber(s){
+  let h=5381;
+  for(let i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i); h = h & 0xFFFFFFFF;}
+  const n = Math.abs(h) % 100; // 0..99
+  return n;
+}
+
+async function updateAll(forceFetch=false){
+  const now = dhakaNow();
+  const seconds = now.getSeconds();
+  const remaining = 60 - seconds;
+  timerEl.textContent = `${pad(Math.floor(remaining/60))} : ${pad(remaining%60)}`;
+
+  const period = buildPeriod(now);
+  periodEl.textContent = period;
+
+  // Prediction: by default use local deterministic algorithm using period
+  let result = null;
+
+  if(API_URL && !forceFetch){
+    // try fetch from API (if provided)
+    try {
+      const r = await fetch(API_URL, {method:'GET'});
+      if(r.ok){
+        const j = await r.json();
+        // Expecting structure: { ok: true, current: {...}, history: ... } OR custom
+        // We attempt to read j.number or j.currentNumber etc. If not found, fallback to local.
+        if(j && typeof j.number !== 'undefined'){
+          result = { number: Number(j.number), source: 'api' };
+        }
+      }
+    } catch(e){
+      console.warn('API fetch failed:', e);
+    }
+  }
+
+  if(!result){
+    const num = hashToNumber(period);
+    result = { number: num, source: 'local' };
+  }
+
+  const num = result.number;
+  numberEl.textContent = pad(num);
+  const bs = (num>=50) ? 'BIG' : 'SMALL';
+  bsBadge.textContent = bs;
+  bsBadge.className = `badge ${bs==='BIG' ? 'big' : 'small'}`;
+
+  const color = (num % 2 === 0) ? 'GREEN' : 'RED';
+  colorBadge.textContent = color;
+  colorBadge.className = `badge ${color==='GREEN' ? 'green' : 'red'}`;
+
+  metaText.textContent = `Source: ${result.source}. Deterministic hash → number (0-99).`;
+}
+
+refreshBtn.addEventListener('click', ()=> updateAll(true));
+copyBtn.addEventListener('click', ()=>{
+  const txt = `${periodEl.textContent} — ${numberEl.textContent} (${bsBadge.textContent}) ${colorBadge.textContent}\nby @MIRAJ_TRADER_15`;
+  navigator.clipboard?.writeText(txt).then(()=> alert('Signal copied!'), ()=> alert('Copy failed'));
+});
+openApiBtn.addEventListener('click', ()=>{
+  if(!API_URL){
+    alert('No API_URL configured. If you have a Netlify function set its URL in the page script (API_URL).');
+    return;
+  }
+  window.open(API_URL,'_blank');
+});
+
+// start timer
+updateAll();
+setInterval(updateAll, 1000);
+</script>
+</body>
+  </html>
