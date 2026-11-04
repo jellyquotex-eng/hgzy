@@ -18,6 +18,18 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ow);-webkit-text
 #glow.on{opacity:1}
 #glow i{display:block;width:100%;height:100%;border-radius:50%;animation:breathe 7s ease-in-out infinite}
 @keyframes breathe{0%,100%{transform:scale(.94)}50%{transform:scale(1.06)}}
+body:not(.go) #rays,body:not(.go) #veil{animation-play-state:paused}
+#gate{position:fixed;inset:0;z-index:10;display:grid;place-items:center;color:var(--ink);font-family:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+ background:radial-gradient(110% 80% at 20% 10%,#d7eaf7 0%,transparent 62%),radial-gradient(100% 80% at 85% 95%,#e6ebd3 0%,transparent 60%),var(--ow);transition:opacity 1.6s ease,visibility 0s 1.6s}
+#gate.bye{opacity:0;visibility:hidden;pointer-events:none}
+.gbox{display:grid;gap:20px;justify-items:center;padding:24px;text-align:center}
+.gbox p{margin:0;font-size:1.4rem;font-style:italic;opacity:.8}
+.opts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+#gate button{font:inherit;font-size:1.2rem;color:var(--ink);background:rgba(255,252,244,.85);border:1.5px solid var(--bb);border-radius:999px;padding:.55em 1.7em;cursor:pointer;transition:background .4s,color .4s,border-color .4s,opacity .4s}
+#gate button[aria-checked=true]{background:var(--ol);border-color:var(--ol);color:#fffcf4}
+#gate #go{background:var(--bb);border-color:var(--bb);margin-top:6px}
+#gate #go:disabled{opacity:.4;cursor:default}
+#gate button:focus-visible{outline:2px solid var(--ol);outline-offset:3px}
 #rays{position:fixed;inset:-25%;z-index:1;pointer-events:none;opacity:0;transform-origin:25% 0;filter:blur(16px);
  background:repeating-linear-gradient(105deg,transparent 0 8%,rgba(188,218,238,.5) 11%,transparent 15% 22%,rgba(230,236,205,.45) 25%,transparent 29% 38%);
  -webkit-mask-image:linear-gradient(#000,transparent 78%);mask-image:linear-gradient(#000,transparent 78%);
@@ -71,6 +83,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ow);-webkit-text
   <p class="line">setai amar kache enough, hahahah. <span class="emo" id="fin">❤️</span></p>
  </section>
 </main>
+<audio id="song" src="SaveTik.io_7655167286600322325.mp3" preload="auto" loop playsinline></audio>
+<div id="gate" role="dialog" aria-label="Enter"><div class="gbox"><p>Gender</p>
+ <div class="opts" role="radiogroup"><button type="button" role="radio" aria-checked="false" data-g="male">Male</button><button type="button" role="radio" aria-checked="false" data-g="female">Female</button></div>
+ <button type="button" id="go" disabled>Submit</button></div></div>
 <div id="veil"></div>
 <script>
 (()=>{
@@ -262,7 +278,7 @@ function drawArt(ts){
  }
  ctx.globalAlpha=1;
 }
-const T0=performance.now();let last=0,raf=0;
+let T0=performance.now(),started=false;let last=0,raf=0;
 function frame(now){
  raf=requestAnimationFrame(frame);
  const dt=Math.min(.05,(now-(last||now))/1000)*S.speed;last=now;
@@ -310,11 +326,11 @@ function frame(now){
 function start(){if(!raf){last=0;raf=requestAnimationFrame(frame)}}
 function stop(){cancelAnimationFrame(raf);raf=0}
 addEventListener('resize',build);
-document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
+document.addEventListener('visibilitychange',()=>document.hidden?stop():started&&start());
 addEventListener('pointermove',e=>{P.tx=(e.clientX/W-.5)*2;P.ty=(e.clientY/H-.5)*2},{passive:true});
 addEventListener('deviceorientation',e=>{if(e.gamma==null)return;P.tx=clamp(e.gamma/30,-1,1);P.ty=clamp((e.beta-45)/30,-1,1)},{passive:true});
-addEventListener('pointerdown',e=>{const t=(performance.now()-T0)/1000;for(let i=0;i<9;i++)pops.push({x:e.clientX,y:e.clientY,vx:rnd(-90,90),vy:rnd(-150,-40),r:rnd(-.5,.5),s:rnd(5,10)*K,c:['#a3ab74','#9dc6e0','#8c9461','#bcdaee'][i%4],t})},{passive:true});
-build();start();
+addEventListener('pointerdown',e=>{if(!started)return;const t=(performance.now()-T0)/1000;for(let i=0;i<9;i++)pops.push({x:e.clientX,y:e.clientY,vx:rnd(-90,90),vy:rnd(-150,-40),r:rnd(-.5,.5),s:rnd(5,10)*K,c:['#a3ab74','#9dc6e0','#8c9461','#bcdaee'][i%4],t})},{passive:true});
+build();
 
 // ---------- timeline ----------
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -326,7 +342,7 @@ async function reveal(sc,gaps){const l=[...$(sc).querySelectorAll('.line')];for(
  await sleep(gaps[Math.min(i,gaps.length-1)])}}
 async function leave(sc){const e=$(sc);e.classList.add('out');await sleep(3000);e.style.display='none'}
 
-(async()=>{
+async function run(){
  sky('sa');                          // 1. text-free intro: a light seed, the love tree grows
  await waitTo(9);sky('sb');
  await waitTo(11.5);S.tree=0;        // 2. the tree gives way to the love art
@@ -344,7 +360,20 @@ async function leave(sc){const e=$(sc);e.classList.add('out');await sleep(3000);
  await reveal('s3',[3200,2200,1500]);
  await sleep(1500);                  // 9. closing: the tree glows, hearts swirl down
  S.tree=1;S.swirl=1;glow(true);$('fin').classList.add('beat');
-})();
+}
+
+// ---------- entry gate: choose, submit, then everything (and the song) starts ----------
+const gate=$('gate'),go=$('go'),song=$('song');let pick='';
+gate.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>{pick=b.dataset.g;
+ gate.querySelectorAll('[data-g]').forEach(x=>x.setAttribute('aria-checked',x===b));go.disabled=false}));
+go.addEventListener('click',()=>{
+ if(!pick||started)return;started=true;
+ song.volume=0;song.play().catch(()=>{});
+ let v=0;const fi=setInterval(()=>{v=Math.min(1,v+.02);song.volume=v;if(v>=1)clearInterval(fi)},60);
+ document.body.classList.add('go');gate.classList.add('bye');setTimeout(()=>gate.remove(),1800);
+ T0=performance.now();start();run();
+});
+addEventListener('pointerdown',()=>{if(started&&song.paused)song.play().catch(()=>{})});   // any tap restarts the song if the browser blocked it
 })();
 </script>
 </body>
