@@ -24,7 +24,7 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ow);-webkit-text
 #stage{position:fixed;inset:0;z-index:3;display:grid;place-items:center;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));pointer-events:none}
 .scene{grid-area:1/1;text-align:center;max-width:24em;font-family:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;font-size:clamp(1.3rem,4.9vw,2.2rem);line-height:1.72;color:var(--ink);font-weight:500;text-shadow:0 0 18px rgba(248,244,236,1),0 0 5px rgba(248,244,236,.9)}
 .scene.s2{text-shadow:0 0 22px rgba(215,234,247,1),0 0 6px rgba(248,244,236,.95)}
-.line{display:block;margin:0;opacity:0;transform:translateY(16px);filter:blur(7px);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 3s cubic-bezier(.22,1,.36,1),filter 2.4s ease}
+.line{display:block;margin:0;min-height:1.72em;opacity:0;transform:translateY(16px);filter:blur(7px);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 3s cubic-bezier(.22,1,.36,1),filter 2.4s ease}
 .line.in{opacity:1;transform:none;filter:none}
 .line.gap{margin-top:1.1em}
 .scene.out .line{opacity:0;transform:translateY(-12px);filter:blur(6px);transition:opacity 2.3s ease-in,transform 2.6s ease-in,filter 2.3s ease-in}
@@ -43,6 +43,10 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--ow);-webkit-text
 <div id="glow"><i></i></div>
 <canvas id="c" aria-hidden="true"></canvas>
 <main id="stage">
+ <section class="scene s0" id="s0">
+  <p class="line">ekta kotha ki jano?</p>
+  <p class="line gap" data-t="ummm........!"></p>
+ </section>
  <section class="scene s1" id="s1">
   <p class="line">Tmr moto keu chilo nahh.</p>
   <p class="line">Tmr moto keu nai,</p>
@@ -67,7 +71,9 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cv=$('c'),ctx=cv.getContext('2d');
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),sm=t=>t*t*(3-2*t);
 const sr=s=>()=>(s=s*16807%2147483647)/2147483647;
-let W,H,DPR,K,L0,BX,BY,fall=[],dust=[],orbs=[],tree=[],leaves=[];
+let W,H,DPR,K,L0,BX,BY,fall=[],dust=[],orbs=[],tree=[],leaves=[],name=[],bursts=[],sparks=[],pops=[],hx,hy,sc,NY;
+const HEART0=12.5,HEART_D=4.5,MORPH0=19.5,MORPH_D=3,NAME_END=28.5,DISS_D=3;   // love-art timings (seconds)
+const hp=(t,k)=>[hx+k*16*Math.pow(Math.sin(t),3),hy-k*(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))];
 const S={swirl:0,tree:1,speed:reduce?.35:1},M={swirl:0,tree:1},P={x:0,y:0,tx:0,ty:0};
 
 const HEART=new Path2D();HEART.moveTo(0,.35);HEART.bezierCurveTo(-1,-.25,-.5,-1,0,-.45);HEART.bezierCurveTo(.5,-1,1,-.25,0,.35);HEART.closePath();
@@ -93,15 +99,29 @@ function makeTree(){
  };
  gen(BX,BY,-Math.PI/2,L0,Math.max(5,L0*.09),0,0);
 }
+function makeArt(a){
+ hx=W/2;hy=H*.43;NY=hy;sc=clamp(Math.min(W,H*.62)*.0148,4,11);
+ const o=document.createElement('canvas');o.width=W;o.height=H;const g=o.getContext('2d');
+ const f='italic 600 100px "Cormorant Garamond","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif';
+ g.font=f;const w=g.measureText('Waisuuu').width,fs=Math.min(100*Math.min(W*.82,880)/w,H*.2);
+ g.font=f.replace('100px',fs+'px');g.textAlign='center';g.textBaseline='middle';g.fillStyle='#000';g.fillText('Waisuuu',W/2,NY);
+ const y0=Math.max(0,Math.floor(NY-fs)),h=Math.min(H-y0,Math.ceil(fs*2)),d=g.getImageData(0,y0,W,h).data,st=Math.max(3,Math.round(fs/19)),pts=[];
+ for(let y=0;y<h;y+=st)for(let x=0;x<W;x+=st)if(d[(y*W+x)*4+3]>128)pts.push([x,y0+y]);
+ const keep=Math.min(1,900/pts.length),NC=['#8c9461','#7fb2d4','#a3ab74','#9dc6e0'];
+ name=pts.filter(()=>Math.random()<keep).map(([x,y])=>{const[sx,sy]=hp(rnd(0,6.2832),sc*rnd(.6,1));
+  return{sx,sy,tx:x,ty:y,d:rnd(0,1.2),arc:rnd(20,70)*(Math.random()<.5?-1:1),r:(1.3+Math.random()*1.3)*K*clamp(st/5,.8,1.6),c:NC[(Math.random()*4)|0],ph:rnd(0,6.28),sp:rnd(1,2.4),h:Math.random()<.14}});
+ bursts=Array.from({length:Math.round(34*Math.max(.7,a))},()=>({a:rnd(0,6.283),sp:rnd(90,260)*K,s:rnd(5,11)*K,c:['#a3ab74','#8c9461','#bcdaee','#9dc6e0'][(Math.random()*4)|0],rise:rnd(10,40)}));
+ sparks=Array.from({length:Math.round(20*a)},()=>({x:rnd(0,W),y:rnd(0,H*.8),s:rnd(3,8)*K,ph:rnd(0,6.28),sp:rnd(.8,2)}));
+}
 function build(){
  DPR=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
  cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
  K=clamp(W/520,.85,1.5);
  const a=clamp(Math.sqrt(W*H/(390*844)),.75,1.7)*(reduce?.5:1);
  fall=Array.from({length:Math.round(24*a)},()=>({x:rnd(0,W),y:rnd(-H*.2,H),z:rnd(.3,1),ph:rnd(0,6.28),rot:rnd(0,6.28),vr:rnd(-.6,.6),fl:rnd(.5,1.4),h:Math.random()<.45,c:FCOL[(Math.random()*6)|0]}));
- dust=Array.from({length:Math.round(64*a)},()=>({x:rnd(0,W),y:rnd(0,H),z:rnd(.3,1),ph:rnd(0,6.28),sp:rnd(.4,1.1),s:(Math.random()*3)|0}));
+ dust=Array.from({length:Math.round(90*a)},()=>({x:rnd(0,W),y:rnd(0,H),z:rnd(.3,1),ph:rnd(0,6.28),sp:rnd(.4,1.1),s:(Math.random()*3)|0}));
  orbs=[['blue',.2,.25,.38],['blue',.82,.2,.42],['olive',.75,.8,.3],['olive',.15,.78,.3],['warm',.5,.5,.4],['warm',.5,.12,.3]].map(o=>({s:SP[o[0]],x:o[1],y:o[2],r:o[3],ph:rnd(0,6.28)}));
- makeTree();
+ makeTree();makeArt(a);
 }
 function petal(s){
  ctx.beginPath();ctx.moveTo(0,-s*.7);
@@ -120,7 +140,7 @@ function drawTree(ts,ease){
  if(ts<3.4){const g=sm(clamp(ts/1.2,0,1))*(1-sm(clamp((ts-1.8)/1.5,0,1))),r=(24+5*Math.sin(ts*4))*K;
   ctx.globalAlpha=g*.9;ctx.drawImage(SP.warm,BX-r,BY-r-6,r*2,r*2);ctx.globalAlpha=g*.7;ctx.drawImage(SP.blue,BX-r*1.8,BY-r*1.8-6,r*3.6,r*3.6)}
  // ground glow
- ctx.save();ctx.translate(BX,BY+4);ctx.scale(1,.18);ctx.globalAlpha=.55*ease*sm(clamp((ts-1)/2,0,1));
+ ctx.save();ctx.translate(BX,BY+4);ctx.scale(1,.18);ctx.globalAlpha=.55*ease*M.tree*sm(clamp((ts-1)/2,0,1));
  const gr=L0*1.5;ctx.drawImage(SP.olive,-gr,-gr,gr*2,gr*2);ctx.restore();
  ctx.save();ctx.translate(BX,BY);ctx.rotate(Math.sin(ts*.45)*.004*sm(clamp(tt/8,0,1)));ctx.translate(-BX,-BY);
  ctx.globalAlpha=a;ctx.lineCap='round';
@@ -141,6 +161,49 @@ function drawTree(ts,ease){
  ctx.restore();
 }
 
+function star(x,y,s){ctx.beginPath();ctx.moveTo(x,y-s);ctx.quadraticCurveTo(x,y,x+s,y);ctx.quadraticCurveTo(x,y,x,y+s);ctx.quadraticCurveTo(x,y,x-s,y);ctx.quadraticCurveTo(x,y,x,y-s);ctx.fill()}
+function drawArt(ts){
+ const th=ts-HEART0;if(th<0)return;
+ const fade=1-sm(clamp((ts-MORPH0)/2.2,0,1));
+ if(fade>0){
+  const beat=1+.035*Math.sin(Math.max(0,th-HEART_D)*4.2);
+  ctx.lineCap='round';ctx.lineJoin='round';
+  for(const[k,c,w,dl]of[[1,'#8c9461',2.4,0],[.8,'#9dc6e0',2,.7],[.58,'#a3ab74',1.6,1.3]]){
+   const p=sm(clamp((th-dl)/HEART_D,0,1));if(p<=0)continue;
+   const n=Math.ceil(120*p);ctx.beginPath();let lx,ly;
+   for(let i=0;i<=n;i++){[lx,ly]=hp(i/120*6.2832,sc*k*beat);i?ctx.lineTo(lx,ly):ctx.moveTo(lx,ly)}
+   ctx.globalAlpha=fade;ctx.lineWidth=w*K;ctx.strokeStyle=c;ctx.stroke();
+   if(p<1){const r=22*K;ctx.globalAlpha=fade*.9;ctx.drawImage(SP.warm,lx-r,ly-r,r*2,r*2);ctx.drawImage(SP.blue,lx-r,ly-r,r*2,r*2)}
+  }
+  const r=sc*24;ctx.globalAlpha=fade*sm(clamp((th-HEART_D)/1.5,0,1))*.55;ctx.drawImage(SP.blue,hx-r,hy-r*.9,r*2,r*2);
+ }
+ const age=th-HEART_D;
+ if(age>0&&age<4)for(const b of bursts){
+  const d=b.sp*(1-Math.exp(-age*1.3));
+  ctx.save();ctx.translate(hx+Math.cos(b.a)*d,hy+Math.sin(b.a)*d-b.rise*age);ctx.scale(b.s,b.s);
+  ctx.globalAlpha=Math.min(1,age*3)*(1-age/4)*.9;ctx.fillStyle=b.c;ctx.fill(HEART);ctx.restore();
+ }
+ for(const r0 of[HEART0+HEART_D,MORPH0+MORPH_D+1.2]){const a=ts-r0;if(a>0&&a<3.6){ctx.lineWidth=1.5;
+  for(let k=0;k<2;k++){const b=a-k*.4;if(b<=0)continue;ctx.globalAlpha=(1-b/3.6)*.4;ctx.strokeStyle=k?'#8c9461':'#9dc6e0';ctx.beginPath();ctx.arc(hx,hy,b/3.6*Math.max(W,H)*.5,0,6.2832);ctx.stroke()}}}
+ const tm=ts-MORPH0;
+ if(tm>-1&&ts<NAME_END+DISS_D+1.5){
+  const gl=sm(clamp((tm-1.5)/2,0,1))*(1-sm(clamp((ts-NAME_END)/DISS_D,0,1))),gw=W*.5;
+  ctx.globalAlpha=.5*gl;ctx.drawImage(SP.blue,W/2-gw,NY-gw*.45,gw*2,gw*.9);
+  for(const n of name){
+   const p=sm(clamp((tm-n.d)/MORPH_D,0,1));if(p<=0)continue;
+   const q=sm(clamp((ts-NAME_END-n.d*1.2)/DISS_D,0,1));if(q>=1)continue;
+   let x=n.sx+(n.tx-n.sx)*p,y=n.sy+(n.ty-n.sy)*p-Math.sin(p*3.1416)*n.arc;
+   if(p>=1){x+=Math.sin(ts*n.sp+n.ph)*1.3;y+=Math.cos(ts*n.sp+n.ph)*1.3}
+   y-=q*(70+n.d*80);x+=Math.sin(n.ph)*q*50;
+   const al=Math.min(1,p*3)*(1-q)*(.75+.25*Math.sin(ts*n.sp*2+n.ph));
+   ctx.globalAlpha=al*.45;ctx.drawImage(SP.blue,x-n.r*2.5,y-n.r*2.5,n.r*5,n.r*5);
+   ctx.globalAlpha=al;ctx.fillStyle=n.c;
+   if(n.h){ctx.save();ctx.translate(x,y);ctx.scale(n.r*2.2,n.r*2.2);ctx.fill(HEART);ctx.restore()}
+   else{ctx.beginPath();ctx.arc(x,y,n.r,0,6.2832);ctx.fill()}
+  }
+ }
+ ctx.globalAlpha=1;
+}
 const T0=performance.now();let last=0,raf=0;
 function frame(now){
  raf=requestAnimationFrame(frame);
@@ -155,7 +218,7 @@ function frame(now){
  }
  const tm=ts*1000*S.speed;
  ctx.globalAlpha=ease;wave(tm,0,'rgba(188,218,238,.26)');wave(tm,1,'rgba(248,244,236,.5)');wave(tm,2,'rgba(140,148,97,.14)');
- drawTree(ts,ease);
+ drawTree(ts,ease);drawArt(ts);
  for(const d of dust){
   d.y-=(5+d.z*9)*K*dt;d.x+=Math.sin(ts*d.sp+d.ph)*6*d.z*dt+3*dt;
   if(d.y<-8){d.y=H+8;d.x=rnd(0,W)}if(d.x>W+8)d.x=-8;
@@ -177,6 +240,11 @@ function frame(now){
   else{petal(s);ctx.fill();ctx.lineWidth=.7;ctx.strokeStyle='rgba(140,148,97,.3)';ctx.stroke()}
   ctx.restore();
  }
+ for(let i=0;i<sparks.length;i++){const k=sparks[i],v=Math.max(0,Math.sin(ts*k.sp+k.ph));
+  ctx.globalAlpha=v*v*v*.85*ease;ctx.fillStyle=i%2?'#9dc6e0':'#a3ab74';star(k.x+P.x*14,k.y+P.y*14,k.s*(.6+v*.6))}
+ for(let i=pops.length-1;i>=0;i--){const o=pops[i],a=ts-o.t;if(a>1.8){pops.splice(i,1);continue}
+  ctx.save();ctx.translate(o.x+o.vx*a,o.y+o.vy*a+60*a*a);ctx.rotate(o.r);ctx.scale(o.s,o.s);
+  ctx.globalAlpha=(1-a/1.8)*.9;ctx.fillStyle=o.c;ctx.fill(HEART);ctx.restore()}
  ctx.globalAlpha=1;
 }
 function start(){if(!raf){last=0;raf=requestAnimationFrame(frame)}}
@@ -185,20 +253,27 @@ addEventListener('resize',build);
 document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
 addEventListener('pointermove',e=>{P.tx=(e.clientX/W-.5)*2;P.ty=(e.clientY/H-.5)*2},{passive:true});
 addEventListener('deviceorientation',e=>{if(e.gamma==null)return;P.tx=clamp(e.gamma/30,-1,1);P.ty=clamp((e.beta-45)/30,-1,1)},{passive:true});
+addEventListener('pointerdown',e=>{const t=(performance.now()-T0)/1000;for(let i=0;i<9;i++)pops.push({x:e.clientX,y:e.clientY,vx:rnd(-90,90),vy:rnd(-150,-40),r:rnd(-.5,.5),s:rnd(5,10)*K,c:['#a3ab74','#9dc6e0','#8c9461','#bcdaee'][i%4],t})},{passive:true});
 build();start();
 
 // ---------- timeline ----------
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const sky=id=>document.querySelectorAll('.sky').forEach(e=>e.classList.toggle('on',e.id===id));
 const glow=on=>$('glow').classList.toggle('on',on);
-async function reveal(sc,gaps){const l=[...$(sc).querySelectorAll('.line')];for(let i=0;i<l.length;i++){l[i].classList.add('in');await sleep(gaps[Math.min(i,gaps.length-1)])}}
+const waitTo=s=>sleep(Math.max(0,s*1000-(performance.now()-T0)));
+async function reveal(sc,gaps){const l=[...$(sc).querySelectorAll('.line')];for(let i=0;i<l.length;i++){const e=l[i];e.classList.add('in');
+ if(e.dataset.t){e.textContent='';for(const ch of e.dataset.t){e.textContent+=ch;await sleep(ch==='.'?400:170)}}
+ await sleep(gaps[Math.min(i,gaps.length-1)])}}
 async function leave(sc){const e=$(sc);e.classList.add('out');await sleep(3000);e.style.display='none'}
 
 (async()=>{
- sky('sa');                          // 1. text-free intro: a light seed, the love tree grows, hearts bloom
- await sleep(9000);sky('sb');
- await sleep(4500);                  // 2. the tree stands; words arrive
- S.tree=.5;
+ sky('sa');                          // 1. text-free intro: a light seed, the love tree grows
+ await waitTo(9);sky('sb');
+ await waitTo(11.5);S.tree=0;        // 2. the tree gives way to the love art
+ await waitTo(MORPH0);sky('sc');     // 3. the heart melts into her name
+ await waitTo(NAME_END+DISS_D+1);sky('sb');S.tree=.5;
+ await reveal('s0',[2800,3800]);     // 4. "ekta kotha ki jano?" ... "ummm........!"
+ await sleep(2200);await leave('s0');await sleep(600);
  await reveal('s1',[2300,2300,2400,1200]);
  await sleep(4800);await leave('s1');
  await sleep(900);glow(true);
