@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f8f4ec">
+<title>For you</title>
+<style>
+:root{--ow:#f8f4ec;--bb:#bcdaee;--ol:#8c9461;--ink:#464c34}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--ow);-webkit-text-size-adjust:100%}
+.sky{position:fixed;inset:0;opacity:0;transition:opacity 5.5s ease-in-out}
+.sky.on{opacity:1}
+#sa{background:radial-gradient(120% 90% at 15% 6%,#d7eaf7 0%,transparent 62%),radial-gradient(100% 80% at 90% 95%,#e8ecd6 0%,transparent 60%),linear-gradient(#f8f4ec,#eef4f5)}
+#sb{background:radial-gradient(90% 70% at 50% 35%,#dcecf7 0%,transparent 65%),radial-gradient(90% 70% at 10% 95%,#e6ebd3 0%,transparent 60%),linear-gradient(#faf7f0,#f4f4ec)}
+#sc{background:radial-gradient(90% 70% at 85% 8%,#e1e7cb 0%,transparent 60%),radial-gradient(100% 80% at 12% 85%,#cde2f0 0%,transparent 62%),radial-gradient(70% 60% at 60% 60%,#f6f3e8 0%,transparent 70%),linear-gradient(#f7f5ec,#f1f3ea)}
+#glow{position:fixed;left:50%;top:50%;width:min(130vw,900px);height:min(110vw,760px);margin:calc(min(110vw,760px)/-2) 0 0 calc(min(130vw,900px)/-2);border-radius:50%;background:radial-gradient(closest-side,rgba(188,218,238,.8),rgba(188,218,238,.26) 55%,transparent);opacity:0;transition:opacity 4.5s ease-in-out;pointer-events:none;z-index:1}
+#glow.on{opacity:1}
+#glow i{display:block;width:100%;height:100%;border-radius:50%;animation:breathe 7s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(.94)}50%{transform:scale(1.06)}}
+#c{position:fixed;inset:0;width:100%;height:100%;z-index:2;display:block}
+#veil{position:fixed;inset:0;background:var(--ow);z-index:5;pointer-events:none;animation:veil 3.5s cubic-bezier(.4,0,.2,1) .3s forwards}
+@keyframes veil{to{opacity:0}}
+#stage{position:fixed;inset:0;z-index:3;display:grid;place-items:center;padding:max(24px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left));pointer-events:none}
+.scene{grid-area:1/1;text-align:center;max-width:24em;font-family:"Cormorant Garamond","Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;font-size:clamp(1.3rem,4.9vw,2.2rem);line-height:1.72;color:var(--ink);font-weight:500;text-shadow:0 0 18px rgba(248,244,236,1),0 0 5px rgba(248,244,236,.9)}
+.scene.s2{text-shadow:0 0 22px rgba(215,234,247,1),0 0 6px rgba(248,244,236,.95)}
+.line{display:block;margin:0;opacity:0;transform:translateY(16px);filter:blur(7px);transition:opacity 2.6s cubic-bezier(.22,1,.36,1),transform 3s cubic-bezier(.22,1,.36,1),filter 2.4s ease}
+.line.in{opacity:1;transform:none;filter:none}
+.line.gap{margin-top:1.1em}
+.scene.out .line{opacity:0;transform:translateY(-12px);filter:blur(6px);transition:opacity 2.3s ease-in,transform 2.6s ease-in,filter 2.3s ease-in}
+.emo{display:inline-block;font-style:normal}
+.beat{animation:beat 3.4s ease-in-out infinite}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+@media (prefers-reduced-motion:reduce){
+ .line,.scene.out .line{transform:none!important;filter:none!important;transition:opacity 1.6s ease!important}
+ #glow i,.beat{animation:none}
+ .sky,#glow{transition-duration:3s}
+}
+</style>
+</head>
+<body>
+<div class="sky" id="sa"></div><div class="sky" id="sb"></div><div class="sky" id="sc"></div>
+<div id="glow"><i></i></div>
+<canvas id="c" aria-hidden="true"></canvas>
+<main id="stage">
+ <section class="scene s1" id="s1">
+  <p class="line">Tmr moto keu chilo nahh.</p>
+  <p class="line">Tmr moto keu nai,</p>
+  <p class="line">tmr moto keu ashbe na,</p>
+  <p class="line">you're always special for me :) <span class="emo">🥺</span></p>
+ </section>
+ <section class="scene s2" id="s2">
+  <p class="line">keno jano?</p>
+  <p class="line gap">karon tmi amar moner moto, hahah <span class="emo">❤️</span></p>
+ </section>
+ <section class="scene s3" id="s3">
+  <p class="line">Ajke ar kono yes/no er jonno chap dibo na.</p>
+  <p class="line gap">Je moner virodde theke yes/no answer deba,</p>
+  <p class="line">setai amar kache enough, hahahah. <span class="emo" id="fin">❤️</span></p>
+ </section>
+</main>
+<div id="veil"></div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cv=$('c'),ctx=cv.getContext('2d');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),sm=t=>t*t*(3-2*t);
+const sr=s=>()=>(s=s*16807%2147483647)/2147483647;
+let W,H,DPR,K,L0,BX,BY,fall=[],dust=[],orbs=[],tree=[],leaves=[];
+const S={swirl:0,tree:1,speed:reduce?.35:1},M={swirl:0,tree:1},P={x:0,y:0,tx:0,ty:0};
+
+const HEART=new Path2D();HEART.moveTo(0,.35);HEART.bezierCurveTo(-1,-.25,-.5,-1,0,-.45);HEART.bezierCurveTo(.5,-1,1,-.25,0,.35);HEART.closePath();
+function sprite(rgb){const s=document.createElement('canvas');s.width=s.height=64;const g=s.getContext('2d'),r=g.createRadialGradient(32,32,0,32,32,32);
+ r.addColorStop(0,`rgba(${rgb},1)`);r.addColorStop(.35,`rgba(${rgb},.35)`);r.addColorStop(1,`rgba(${rgb},0)`);g.fillStyle=r;g.fillRect(0,0,64,64);return s}
+const SP={blue:sprite('150,200,230'),olive:sprite('170,178,120'),warm:sprite('255,250,236')};
+const BCOL=['#6b7348','#767e50','#818a58','#8c9461','#98a169','#a3ab74','#aeb67f'];
+const LCOL=['#a3ab74','#8c9461','#bcdaee','#9dc6e0','#fffcf4','#b7c08a'];
+const FCOL=['#bcdaee','#d6e9f5','#fffcf4','#cfd9a8','#a3ab74','#9dc6e0'];
+
+function makeTree(){
+ const R=sr(11);tree=[];leaves=[];L0=Math.min(H*.17,W*.3);BX=W/2;BY=H*.94;
+ const lf=(x,y,t)=>({x,y,t:t+R()*.7,s:(6+R()*6)*K,c:LCOL[(R()*6)|0],r:(R()-.5)*1.3,ph:R()*6.28});
+ const gen=(x,y,a,len,w,d,t0)=>{
+  const x2=x+Math.cos(a)*len,y2=y+Math.sin(a)*len,bd=(R()-.5)*len*.3;
+  const cx=(x+x2)/2-Math.sin(a)*bd,cy=(y+y2)/2+Math.cos(a)*bd,dur=.5+len/L0*.9,t1=t0+dur;
+  tree.push({x,y,cx,cy,x2,y2,w,t0,dur,c:BCOL[d]});
+  if(d>=4)leaves.push(lf(x2,y2,t1));
+  if(d===6&&R()<.5)leaves.push(lf(cx,cy,t1-.2));
+  if(d<6){const n=d===0?3:2;for(let i=0;i<n;i++){
+   const off=n===3?(i-1)*.5:(i?1:-1)*(.25+R()*.3);
+   gen(x2,y2,a+off+(R()-.5)*.15,len*(.76+R()*.06),Math.max(1.2,w*.72),d+1,t1)}}
+ };
+ gen(BX,BY,-Math.PI/2,L0,Math.max(5,L0*.09),0,0);
+}
+function build(){
+ DPR=Math.min(window.devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+ cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+ K=clamp(W/520,.85,1.5);
+ const a=clamp(Math.sqrt(W*H/(390*844)),.75,1.7)*(reduce?.5:1);
+ fall=Array.from({length:Math.round(24*a)},()=>({x:rnd(0,W),y:rnd(-H*.2,H),z:rnd(.3,1),ph:rnd(0,6.28),rot:rnd(0,6.28),vr:rnd(-.6,.6),fl:rnd(.5,1.4),h:Math.random()<.45,c:FCOL[(Math.random()*6)|0]}));
+ dust=Array.from({length:Math.round(64*a)},()=>({x:rnd(0,W),y:rnd(0,H),z:rnd(.3,1),ph:rnd(0,6.28),sp:rnd(.4,1.1),s:(Math.random()*3)|0}));
+ orbs=[['blue',.2,.25,.38],['blue',.82,.2,.42],['olive',.75,.8,.3],['olive',.15,.78,.3],['warm',.5,.5,.4],['warm',.5,.12,.3]].map(o=>({s:SP[o[0]],x:o[1],y:o[2],r:o[3],ph:rnd(0,6.28)}));
+ makeTree();
+}
+function petal(s){
+ ctx.beginPath();ctx.moveTo(0,-s*.7);
+ ctx.bezierCurveTo(s*.35,-s*1.05,s*.95,-s*.45,s*.6,s*.3);ctx.quadraticCurveTo(s*.25,s*.85,0,s);
+ ctx.quadraticCurveTo(-s*.25,s*.85,-s*.6,s*.3);ctx.bezierCurveTo(-s*.95,-s*.45,-s*.35,-s*1.05,0,-s*.7);ctx.closePath();
+}
+function wave(t,i,col){
+ const base=H*(.88+.03*i),amp=H*(.016+.004*i);
+ ctx.beginPath();ctx.moveTo(0,H);
+ for(let x=0;x<=W+14;x+=14)ctx.lineTo(x,base+Math.sin(x*.0055/K*1.3+t*.00035*(1+i*.35)+i*2)*amp+Math.sin(x*.012-t*.0003+i)*amp*.45);
+ ctx.lineTo(W,H);ctx.closePath();ctx.fillStyle=col;ctx.fill();
+}
+function drawTree(ts,ease){
+ const tt=reduce?99:ts-1.8,a=M.tree*ease;
+ // seed of light before the tree grows
+ if(ts<3.4){const g=sm(clamp(ts/1.2,0,1))*(1-sm(clamp((ts-1.8)/1.5,0,1))),r=(24+5*Math.sin(ts*4))*K;
+  ctx.globalAlpha=g*.9;ctx.drawImage(SP.warm,BX-r,BY-r-6,r*2,r*2);ctx.globalAlpha=g*.7;ctx.drawImage(SP.blue,BX-r*1.8,BY-r*1.8-6,r*3.6,r*3.6)}
+ // ground glow
+ ctx.save();ctx.translate(BX,BY+4);ctx.scale(1,.18);ctx.globalAlpha=.55*ease*sm(clamp((ts-1)/2,0,1));
+ const gr=L0*1.5;ctx.drawImage(SP.olive,-gr,-gr,gr*2,gr*2);ctx.restore();
+ ctx.save();ctx.translate(BX,BY);ctx.rotate(Math.sin(ts*.45)*.004*sm(clamp(tt/8,0,1)));ctx.translate(-BX,-BY);
+ ctx.globalAlpha=a;ctx.lineCap='round';
+ for(const b of tree){
+  const p=clamp((tt-b.t0)/b.dur,0,1);if(p<=0)continue;
+  const q=1-p,ex=q*q*b.x+2*q*p*b.cx+p*p*b.x2,ey=q*q*b.y+2*q*p*b.cy+p*p*b.y2;
+  ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.quadraticCurveTo(b.x+(b.cx-b.x)*p,b.y+(b.cy-b.y)*p,ex,ey);
+  ctx.lineWidth=b.w;ctx.strokeStyle=b.c;ctx.stroke();
+ }
+ for(const l of leaves){
+  const age=tt-l.t;if(age<=0)continue;
+  const s=l.s*sm(clamp(age/1.8,0,1))*(1+.05*Math.sin(ts*1.2+l.ph));
+  ctx.save();ctx.translate(l.x,l.y);ctx.rotate(l.r+Math.sin(ts*.8+l.ph)*.12);ctx.scale(s,s);
+  ctx.fillStyle=l.c;ctx.fill(HEART);
+  if(l.c==='#fffcf4'){ctx.lineWidth=.1;ctx.strokeStyle='rgba(140,148,97,.45)';ctx.stroke(HEART)}
+  ctx.restore();
+ }
+ ctx.restore();
+}
+
+const T0=performance.now();let last=0,raf=0;
+function frame(now){
+ raf=requestAnimationFrame(frame);
+ const dt=Math.min(.05,(now-(last||now))/1000)*S.speed;last=now;
+ const ts=(now-T0)/1000,appear=clamp(ts/4,0,1),ease=sm(appear);
+ M.swirl+=(S.swirl-M.swirl)*dt*.4;M.tree+=(S.tree-M.tree)*dt*.6;
+ P.x+=(P.tx-P.x)*.04;P.y+=(P.ty-P.y)*.04;
+ ctx.clearRect(0,0,W,H);
+ for(const o of orbs){
+  const x=o.x*W+Math.sin(ts*.11+o.ph)*W*.06+P.x*30,y=o.y*H+Math.cos(ts*.09+o.ph*1.3)*H*.05+P.y*30,r=o.r*Math.max(W,H)*(1+.06*Math.sin(ts*.2+o.ph));
+  ctx.globalAlpha=.55*ease;ctx.drawImage(o.s,x-r,y-r,r*2,r*2);
+ }
+ const tm=ts*1000*S.speed;
+ ctx.globalAlpha=ease;wave(tm,0,'rgba(188,218,238,.26)');wave(tm,1,'rgba(248,244,236,.5)');wave(tm,2,'rgba(140,148,97,.14)');
+ drawTree(ts,ease);
+ for(const d of dust){
+  d.y-=(5+d.z*9)*K*dt;d.x+=Math.sin(ts*d.sp+d.ph)*6*d.z*dt+3*dt;
+  if(d.y<-8){d.y=H+8;d.x=rnd(0,W)}if(d.x>W+8)d.x=-8;
+  const tw=.5+.5*Math.sin(ts*d.sp*1.6+d.ph),r=(4+d.z*9)*K*(.7+.5*tw);
+  ctx.globalAlpha=(.25+.5*tw)*d.z*ease;
+  ctx.drawImage(d.s===0?SP.warm:d.s===1?SP.blue:SP.olive,d.x+P.x*d.z*40-r,d.y+P.y*d.z*40-r,r*2,r*2);
+ }
+ const g=sm(clamp((ts-5)/6,0,1));            // blossoms and heart leaves drift once the tree is alive
+ for(const p of fall){
+  const s=(5.5+p.z*9)*K;
+  p.y+=(15+p.z*24)*K*(1-.35*M.swirl)*dt;
+  p.x+=(Math.sin(ts*.6+p.ph)*16*(1+M.swirl*1.2)+9+Math.cos(ts*.5+p.ph)*M.swirl*14)*p.z*dt;
+  p.rot+=p.vr*dt;
+  if(p.y>H+30){p.y=-30;p.x=rnd(-40,W)}if(p.x>W+40)p.x=-40;if(p.x<-60)p.x=W+30;
+  ctx.save();ctx.translate(p.x+P.x*p.z*34,p.y+P.y*p.z*34);ctx.rotate(p.rot);
+  ctx.scale(.3+.7*Math.abs(Math.cos(ts*p.fl+p.ph)),1);
+  ctx.globalAlpha=(.4+p.z*.5)*g;ctx.fillStyle=p.c;
+  if(p.h){ctx.scale(s*.9,s*.9);ctx.fill(HEART)}
+  else{petal(s);ctx.fill();ctx.lineWidth=.7;ctx.strokeStyle='rgba(140,148,97,.3)';ctx.stroke()}
+  ctx.restore();
+ }
+ ctx.globalAlpha=1;
+}
+function start(){if(!raf){last=0;raf=requestAnimationFrame(frame)}}
+function stop(){cancelAnimationFrame(raf);raf=0}
+addEventListener('resize',build);
+document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
+addEventListener('pointermove',e=>{P.tx=(e.clientX/W-.5)*2;P.ty=(e.clientY/H-.5)*2},{passive:true});
+addEventListener('deviceorientation',e=>{if(e.gamma==null)return;P.tx=clamp(e.gamma/30,-1,1);P.ty=clamp((e.beta-45)/30,-1,1)},{passive:true});
+build();start();
+
+// ---------- timeline ----------
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const sky=id=>document.querySelectorAll('.sky').forEach(e=>e.classList.toggle('on',e.id===id));
+const glow=on=>$('glow').classList.toggle('on',on);
+async function reveal(sc,gaps){const l=[...$(sc).querySelectorAll('.line')];for(let i=0;i<l.length;i++){l[i].classList.add('in');await sleep(gaps[Math.min(i,gaps.length-1)])}}
+async function leave(sc){const e=$(sc);e.classList.add('out');await sleep(3000);e.style.display='none'}
+
+(async()=>{
+ sky('sa');                          // 1. text-free intro: a light seed, the love tree grows, hearts bloom
+ await sleep(9000);sky('sb');
+ await sleep(4500);                  // 2. the tree stands; words arrive
+ S.tree=.5;
+ await reveal('s1',[2300,2300,2400,1200]);
+ await sleep(4800);await leave('s1');
+ await sleep(900);glow(true);
+ await reveal('s2',[3600,1500]);
+ await sleep(5200);await leave('s2');glow(false);
+ await sleep(900);sky('sc');S.tree=.7;
+ await sleep(2600);
+ await reveal('s3',[3200,2200,1500]);
+ await sleep(1500);                  // 9. closing: the tree glows, hearts swirl down
+ S.tree=1;S.swirl=1;glow(true);$('fin').classList.add('beat');
+})();
+})();
+</script>
+</body>
+</html>
